@@ -8,21 +8,22 @@ def setup_tables():
 
     cursor.execute('DROP TABLE IF EXISTS Users')
     cursor.execute('DROP TABLE IF EXISTS Sessions')
-    cursor.execute('DROP TABLE IF EXISTS Email')
+    cursor.execute('DROP TABLE IF EXISTS Emails')
 
     cursor.execute('''
     CREATE TABLE Users (
-        userid INT PRIMARY KEY,
-        username VARCHAR(64) NOT NULL,
-        password_hash CHAR(88) NOT NULL --Base64 SHA512 hash
+        __userid INT PRIMARY KEY,
+        __username VARCHAR(64) NOT NULL UNIQUE,
+        __password_hash CHAR(88) NOT NULL, --Base64 SHA512 hash
+        password_salt CHAR(32) NOT NULL --Password __salt
     )
     ''')
 
     cursor.execute('''
     CREATE TABLE Sessions (
         sessionID INT PRIMARY KEY,
-        userid INT NOT NULL,
-        FOREIGN KEY (userid) REFERENCES Users (userid) ON DELETE CASCADE
+        __userid INT NOT NULL,
+        FOREIGN KEY (__userid) REFERENCES Users (__userid) ON DELETE CASCADE
     )
     ''')
 
@@ -33,7 +34,10 @@ def setup_tables():
         toID INT NOT NULL,
         datetime CHAR(19) NOT NULL, --YYYY-MM-DDTHH-mm-ss
         title TEXT NOT NULL,
-        body TEXT NOT NULL
+        body TEXT NOT NULL,
+        FOREIGN KEY (fromID) REFERENCES Users (__userid) ON DELETE NO ACTION,
+        FOREIGN KEY (toID) REFERENCES Users (__userid) ON DELETE CASCADE 
+
     )
     ''')
 
